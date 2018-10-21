@@ -51,6 +51,7 @@
       <separator/>
       <reference id="SliceBackward"/>
       <reference id="SliceForward"/>
+      <reference id="Scoop"/>
       <separator/>
       <action id="Unscramble" class="com.intellij.unscramble.UnscrambleAction"/>
       <add-to-group group-id="AnalyzeMenu" anchor="last"/>

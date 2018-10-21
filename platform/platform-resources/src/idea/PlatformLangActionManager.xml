@@ -52,6 +52,7 @@
       <separator/>
       <reference id="SliceBackward"/>
       <reference id="SliceForward"/>
+      <reference id="Scoop"/>
       <separator/>
 
       <add-to-group group-id="CodeMenu" anchor="last"/>

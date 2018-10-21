@@ -317,6 +317,7 @@
     <!-- Analyze -->
     <action id="SliceBackward" class="com.intellij.slicer.SliceBackwardAction"/>
     <action id="SliceForward" class="com.intellij.slicer.SliceForwardAction"/>
+    <action id="Scoop" class="com.intellij.slicer.ScoopAction"/>
 
     <!-- Refactor -->
     <group id="RefactoringMenu" popup="true">
