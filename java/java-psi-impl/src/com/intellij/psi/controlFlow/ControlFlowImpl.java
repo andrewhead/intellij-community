@@ -29,6 +29,8 @@ class ControlFlowImpl implements ControlFlow {
   private static final Logger LOG = Logger.getInstance("#com.intellij.psi.controlFlow.ControlFlowImpl");
 
   private final List<Instruction> myInstructions = new ArrayList<>();
+  // Indexes are assigned to each of the code elements. These offsets are just assigned to keep track of
+  // the ranges of nodes in the CFG that fall under any given control flow node.
   private final ObjectIntHashMap<PsiElement> myElementToStartOffsetMap = new ObjectIntHashMap<>();
   private final ObjectIntHashMap<PsiElement> myElementToEndOffsetMap = new ObjectIntHashMap<>();
   private final List<PsiElement> myElementsForInstructions = new ArrayList<>();
