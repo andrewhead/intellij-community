@@ -52,7 +52,7 @@ import java.util.*;
 /**
  * @author cdr
  */
-class SliceUtil {
+public class SliceUtil {
   static boolean processUsagesFlownDownTo(@NotNull PsiElement expression,
                                           @NotNull Processor<SliceUsage> processor,
                                           @NotNull JavaSliceUsage parent,
@@ -114,7 +114,10 @@ class SliceUtil {
     }
     if (expression instanceof PsiVariable) {
       PsiVariable variable = (PsiVariable)expression;
+      // By clearing out cached values, we can include some more variable assignments in the slice.
       Collection<PsiExpression> values = DfaUtil.getCachedVariableValues(variable, original);
+      values.clear();
+      // Collection<PsiExpression> values = null;
       if (values == null) {
         SliceUsage stopUsage = createTooComplexDFAUsage(expression, parent);
         return processor.process(stopUsage);

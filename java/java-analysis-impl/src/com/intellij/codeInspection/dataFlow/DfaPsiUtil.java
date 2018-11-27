@@ -447,6 +447,7 @@ public class DfaPsiUtil {
       (NullableFunction<PsiReference, PsiExpression>)psiReference -> {
         if (modificationRef.get()) return null;
         final PsiElement parent = psiReference.getElement().getParent();
+        // AFAICT this is checking to see if a value has been assigned to
         if (parent instanceof PsiAssignmentExpression) {
           final PsiAssignmentExpression assignmentExpression = (PsiAssignmentExpression)parent;
           final IElementType operation = assignmentExpression.getOperationTokenType();
