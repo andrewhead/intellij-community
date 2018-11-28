@@ -5,7 +5,6 @@ import com.intellij.codeInsight.CodeInsightActionHandler;
 import com.intellij.codeInsight.actions.CodeInsightAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
@@ -54,10 +53,8 @@ public class ScoopAction extends CodeInsightAction {
   @Override
   public void actionPerformed(AnActionEvent event) {
 
-    // Project project = event.getData(PlatformDataKeys.PROJECT);
     final Editor editor = event.getData(CommonDataKeys.EDITOR);
     final PsiFile psiFile = event.getData(CommonDataKeys.PSI_FILE);
-    // final Document document = editor.getDocument();
 
     editor.addEditorMouseMotionListener(
       new EditorMouseMotionListener() {
@@ -65,8 +62,6 @@ public class ScoopAction extends CodeInsightAction {
 
         @Override
         public void mouseMoved(EditorMouseEvent e) {
-          // int x = e.getMouseEvent().getX();
-          // int y = e.getMouseEvent().getY();
           LogicalPosition mousePosition = editor.xyToLogicalPosition(e.getMouseEvent().getPoint());
           int offset = editor.logicalPositionToOffset(mousePosition);
           PsiElement hoveredElement = psiFile.findElementAt(offset);
@@ -88,11 +83,7 @@ public class ScoopAction extends CodeInsightAction {
       }
     );
 
-    // for (int i = 0; i < editor.getDocument().getLineCount(); i++) {
-    // editor.getMarkupModel().addLineHighlighter(i, 0, new TextAttributes(null, new Color(255, 255 - i * 20, 255 - i * 20), null, null, -1));
-    // }
-
-    // There is tons of wonky stuff going on with data flow analysis for objects---it seems to make bidirectional relationships,
+    // There is tons of weird stuff going on with data flow analysis for objects---it seems to make bidirectional relationships,
     // which does not seem right. Maybe it's because the selection is wrong?
 
     DataFlowGraph dataFlowGraph = DataFlowGraph.buildDataFlowGraph(psiFile);

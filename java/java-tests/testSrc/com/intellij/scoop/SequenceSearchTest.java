@@ -7,10 +7,7 @@ import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.controlFlow.ControlFlow;
 import com.intellij.psi.controlFlow.ControlFlowFactory;
 import com.intellij.psi.controlFlow.LocalsOrMyInstanceFieldsControlFlowPolicy;
-import com.intellij.slicer.ControlFlowGraph;
-import com.intellij.slicer.ElementInstruction;
-import com.intellij.slicer.InstructionMatcher;
-import com.intellij.slicer.InstructionSequenceSearch;
+import com.intellij.slicer.*;
 import com.intellij.testFramework.LightCodeInsightTestCase;
 
 import java.util.Collections;
@@ -34,15 +31,19 @@ public class SequenceSearchTest extends LightCodeInsightTestCase {
     return new ControlFlowGraph(flow);
   }
 
+  private static boolean matchElementText(ElementInstruction elementInstruction, String text) {
+    PsiElement element = elementInstruction.getElement();
+    if (element != null && element.getText() != null) {
+      return element.getText().equals(text);
+    }
+    return false;
+  }
+
   private static InstructionMatcher makeTextMatcher(String text) {
     return new InstructionMatcher() {
       @Override
-      public boolean match(ElementInstruction elementInstruction) {
-        PsiElement element = elementInstruction.getElement();
-        if (element != null && element.getText() != null) {
-          return element.getText().equals(text);
-        }
-        return false;
+      public boolean doMatch(ElementInstruction elementInstruction, List<MatchResult> pastMatches, List<PsiElement> matchedElements) {
+        return matchElementText(elementInstruction, text);
       }
     };
   }
@@ -51,17 +52,43 @@ public class SequenceSearchTest extends LightCodeInsightTestCase {
   // TODO: branching sequence (call1, then call2, then call2 again. Or it appears in both branches).
   public void testFindSequence() throws Exception {
     ControlFlowGraph controlFlowGraph = prepareControlFlowGraph();
-    Set<List<ElementInstruction>> instructionSets =
+    Set<List<MatchResult>> instructionSets =
       InstructionSequenceSearch.search(controlFlowGraph, makeTextMatcher("int assign1 = 1;"), makeTextMatcher("int assign2 = 2;"));
     assertEquals(1, instructionSets.size());
-    List<ElementInstruction> instructions = Collections.list(Collections.enumeration(instructionSets)).get(0);
-    assertEquals("int assign1 = 1;", instructions.get(0).getElement().getText());
-    assertEquals("int assign2 = 2;", instructions.get(1).getElement().getText());
+    List<MatchResult> matches = Collections.list(Collections.enumeration(instructionSets)).get(0);
+    assertEquals("int assign1 = 1;", matches.get(0).getElementInstruction().getElement().getText());
+    assertEquals("int assign2 = 2;", matches.get(1).getElementInstruction().getElement().getText());
+  }
+
+  public void testFindSequenceWithMatchContext() throws Exception {
+    ControlFlowGraph controlFlowGraph = prepareControlFlowGraph();
+    InstructionMatcher firstMatcher = new InstructionMatcher() {
+      @Override
+      public boolean doMatch(ElementInstruction instruction, List<MatchResult> pastMatches, List<PsiElement> matchedElements) {
+        boolean match = matchElementText(instruction, "int assign1 = 1;");
+        if (match) {
+          matchedElements.add(instruction.getElement());
+        }
+        return match;
+      }
+    };
+    InstructionMatcher secondMatcher = new InstructionMatcher() {
+      @Override
+      public boolean doMatch(ElementInstruction instruction, List<MatchResult> pastMatches, List<PsiElement> matchedElements) {
+        return matchElementText(instruction, "int assign2 = 2;") &&
+               pastMatches.size() >= 1 &&
+               pastMatches.get(0).getMatchedElements().size() >= 0 &&
+               pastMatches.get(0).getMatchedElements().get(0).getText().equals("int assign1 = 1;");
+      }
+    };
+    Set<List<MatchResult>> instructionSets =
+      InstructionSequenceSearch.search(controlFlowGraph, firstMatcher, secondMatcher);
+    assertEquals(1, instructionSets.size());
   }
 
   public void testDontFindSequence() throws Exception {
     ControlFlowGraph controlFlowGraph = prepareControlFlowGraph();
-    Set<List<ElementInstruction>> instructionSets =
+    Set<List<MatchResult>> instructionSets =
       InstructionSequenceSearch.search(controlFlowGraph, makeTextMatcher("int assign1 = 1;"), makeTextMatcher("line doesn't exist"));
     assertEquals(0, instructionSets.size());
   }

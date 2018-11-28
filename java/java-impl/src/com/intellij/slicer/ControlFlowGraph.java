@@ -74,32 +74,4 @@ public class ControlFlowGraph {
     }
     return nextInstructions;
   }
-
-  public Set<ElementInstruction> search(InstructionMatcher matcher, ElementInstruction startingAt) {
-    if (startingAt == null) {
-      startingAt = this.mNodes.get(0);
-    }
-    Set<ElementInstruction> visited = new HashSet<>();
-    Set<ElementInstruction> found = new HashSet<>();
-    return search(matcher, startingAt, visited, found);
-  }
-
-  public Set<ElementInstruction> search(InstructionMatcher matcher,
-                                        ElementInstruction startAt,
-                                        Set<ElementInstruction> visited,
-                                        Set<ElementInstruction> found) {
-    if (visited.contains(startAt)) return found;
-    if (matcher.match(startAt)) {
-      found.add(startAt);
-    }
-    else {
-      for (ElementInstruction next : getNext(startAt)) {
-        if (next != null) {
-          found.addAll(search(matcher, next, visited, found));
-        }
-      }
-    }
-    visited.add(startAt);
-    return found;
-  }
 }

@@ -7,15 +7,16 @@ import java.util.List;
 import java.util.Set;
 
 public class InstructionSequenceSearch {
-  public static Set<List<ElementInstruction>> search(ControlFlowGraph controlFlowGraph, InstructionMatcher... matchers) {
-    Set<List<ElementInstruction>> subsequences = new HashSet<>();
+  public static Set<List<MatchResult>> search(ControlFlowGraph controlFlowGraph, InstructionMatcher... matchers) {
+    Set<List<MatchResult>> subsequences = new HashSet<>();
     subsequences.add(new ArrayList<>());
     for (InstructionMatcher matcher : matchers) {
-      Set<List<ElementInstruction>> newSubsequences = new HashSet<>();
-      for (List<ElementInstruction> subsequence : subsequences) {
-        ElementInstruction lastInstructionInPattern = (subsequence.size() > 0) ? subsequence.get(subsequence.size() - 1) : null;
-        for (ElementInstruction next : controlFlowGraph.search(matcher, lastInstructionInPattern)) {
-          List<ElementInstruction> newSubsequence = new ArrayList<>(subsequence);
+      Set<List<MatchResult>> newSubsequences = new HashSet<>();
+      for (List<MatchResult> subsequence : subsequences) {
+        MatchResult lastMatch = (subsequence.size() > 0) ? subsequence.get(subsequence.size() - 1) : null;
+        ElementInstruction lastInstruction = lastMatch != null ? lastMatch.getElementInstruction() : null;
+        for (MatchResult next : searchCfg(controlFlowGraph, matcher, lastInstruction, subsequence)) {
+          List<MatchResult> newSubsequence = new ArrayList<>(subsequence);
           newSubsequence.add(next);
           newSubsequences.add(newSubsequence);
         }
@@ -23,5 +24,37 @@ public class InstructionSequenceSearch {
       subsequences = newSubsequences;
     }
     return subsequences;
+  }
+
+  public static Set<MatchResult> searchCfg(ControlFlowGraph controlFlowGraph,
+                                           InstructionMatcher matcher,
+                                           ElementInstruction startingAt,
+                                           List<MatchResult> pastResults) {
+    if (startingAt == null) {
+      startingAt = controlFlowGraph.getNode(0);
+    }
+    Set<ElementInstruction> visited = new HashSet<>();
+    Set<MatchResult> found = new HashSet<>();
+    return searchCfg(controlFlowGraph, matcher, startingAt, visited, found, pastResults);
+  }
+
+  public static Set<MatchResult> searchCfg(ControlFlowGraph controlFlowGraph, InstructionMatcher matcher,
+                                           ElementInstruction startAt,
+                                           Set<ElementInstruction> visited,
+                                           Set<MatchResult> found, List<MatchResult> pastResults) {
+    if (visited.contains(startAt)) return found;
+    MatchResult match = matcher.match(startAt, pastResults);
+    if (match.getSuccess()) {
+      found.add(match);
+    }
+    else {
+      for (ElementInstruction next : controlFlowGraph.getNext(startAt)) {
+        if (next != null) {
+          found.addAll(searchCfg(controlFlowGraph, matcher, next, visited, found, pastResults));
+        }
+      }
+    }
+    visited.add(startAt);
+    return found;
   }
 }
