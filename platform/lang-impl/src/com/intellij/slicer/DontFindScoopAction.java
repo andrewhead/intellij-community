@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author cdr
  */
-public class ScoopAction extends CodeInsightAction {
+public class DontFindScoopAction extends CodeInsightAction {
 
   @NotNull
   @Override

@@ -5,8 +5,13 @@ import com.intellij.codeInsight.CodeInsightActionHandler;
 import com.intellij.codeInsight.actions.CodeInsightAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.editor.event.EditorMouseEvent;
+import com.intellij.openapi.editor.event.EditorMouseMotionListener;
 import com.intellij.openapi.editor.markup.HighlighterTargetArea;
+import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -15,6 +20,8 @@ import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -48,9 +55,38 @@ public class ScoopAction extends CodeInsightAction {
   public void actionPerformed(AnActionEvent event) {
 
     // Project project = event.getData(PlatformDataKeys.PROJECT);
-    // final Document document = editor.getDocument();
     final Editor editor = event.getData(CommonDataKeys.EDITOR);
     final PsiFile psiFile = event.getData(CommonDataKeys.PSI_FILE);
+    // final Document document = editor.getDocument();
+
+    editor.addEditorMouseMotionListener(
+      new EditorMouseMotionListener() {
+        private List<RangeHighlighter> mOldHighlighters = new ArrayList<>();
+
+        @Override
+        public void mouseMoved(EditorMouseEvent e) {
+          // int x = e.getMouseEvent().getX();
+          // int y = e.getMouseEvent().getY();
+          LogicalPosition mousePosition = editor.xyToLogicalPosition(e.getMouseEvent().getPoint());
+          int offset = editor.logicalPositionToOffset(mousePosition);
+          PsiElement hoveredElement = psiFile.findElementAt(offset);
+          if (hoveredElement != null) {
+            for (RangeHighlighter oldHighlighter : this.mOldHighlighters) {
+              Objects.requireNonNull(editor).getMarkupModel().removeHighlighter(oldHighlighter);
+            }
+            this.mOldHighlighters.clear();
+            RangeHighlighter highlighter = Objects.requireNonNull(editor).getMarkupModel().addRangeHighlighter(
+              hoveredElement.getTextRange().getStartOffset(), hoveredElement.getTextRange().getEndOffset(), 0,
+              new TextAttributes(null, new JBColor(new Color(153, 204, 255), new Color(153, 204, 255)), null, null, -1),
+              HighlighterTargetArea.EXACT_RANGE);
+            this.mOldHighlighters.add(highlighter);
+          }
+        }
+
+        @Override
+        public void mouseDragged(EditorMouseEvent e) {}
+      }
+    );
 
     // for (int i = 0; i < editor.getDocument().getLineCount(); i++) {
     // editor.getMarkupModel().addLineHighlighter(i, 0, new TextAttributes(null, new Color(255, 255 - i * 20, 255 - i * 20), null, null, -1));
