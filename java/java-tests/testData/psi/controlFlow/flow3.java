@@ -1,11 +1,11 @@
 // LocalsOrMyInstanceFieldsControlFlowPolicy
 
 public class a {
-  void f(int i) throws Exception {<caret>
+  void f(int i) throws java.lang.Exception {<caret>
       i = 5;
       try {
         f(i);
-      } catch (Exception e) {
+      } catch (java.lang.Exception e) {
         i = 0;
       }
       finally {

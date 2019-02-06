@@ -518,7 +518,6 @@ class ControlFlowAnalyzer extends JavaElementVisitor {
         startElement(element);
       }
 
-      // Why is it relevant to track "write" instructions in control flow analysis?
       generateWriteInstruction(element);
 
       if (myAssignmentTargetsAreElements) {
@@ -734,8 +733,6 @@ class ControlFlowAnalyzer extends JavaElementVisitor {
 
     boolean thenReachable = true;
     boolean generateConditionalJump = true;
-    // So this is just producing a more explicit and consistent representation of program flow
-    // and where branches are taken and joined, right?
     /*
      * if() statement generated instructions outline:
      *  'if (C) { A } [ else { B } ]' :

@@ -62,10 +62,12 @@ public class ControlFlowTest extends LightCodeInsightTestCase {
     File testDir = new File(testDirPath);
     final File[] files = testDir.listFiles((dir, name) -> name.endsWith(".java"));
     for (int i = 0; i < files.length; i++) {
-      File file = files[i];
-      doTestFor(file);
+      if (files[i].getName().endsWith("flow3.java")) {
+        File file = files[i];
+        doTestFor(file);
 
-      System.out.print((i+1)+" ");
+        System.out.print((i + 1) + " ");
+      }
     }
   }
 
